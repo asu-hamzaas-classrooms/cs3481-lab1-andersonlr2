@@ -41,9 +41,16 @@
  *   1) no more than ten lines of code
  *   2) use a loop
 */
-uint64_t Tools::buildLong(uint8_t bytes[LONGSIZE])
+uint64_t Tools::buildLong(uint8_t bytes[LONGSIZE]) //completed
 {
-  return 0;
+  //add top bit to answer shift left one and repeat
+  uint64_t builtLong = 0x00;
+  for (size_t i = 8; i > 0; i--)
+  {
+    builtLong = builtLong << 8;
+    builtLong = builtLong + bytes[i-1];
+  }
+  return builtLong;
 }
 
 /** 
@@ -65,9 +72,16 @@ uint64_t Tools::buildLong(uint8_t bytes[LONGSIZE])
  * 1) you can use an if to handle error checking on input
  * 2) no loops or conditionals (other than for 1) or switch
 */
-uint64_t Tools::getByte(uint64_t source, int32_t byteNum)
+uint64_t Tools::getByte(uint64_t source, int32_t byteNum) //completed
 {
-  return 0;
+  //shift bits until the desired numbers are in the lowest order and then return those
+  uint64_t lowestBits = 0x00000000000000FF;
+  if (byteNum > 7 || byteNum < 0)
+  {
+    return 0;
+  }
+  source = source >> (byteNum*8);
+  return source & lowestBits;
 }
 
 /**
@@ -95,9 +109,18 @@ uint64_t Tools::getByte(uint64_t source, int32_t byteNum)
  * 1) you can use an if to handle error checking on input
  * 2) no loops or conditionals (other than for 1) or switch
  */
-uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high)
+uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high) //not completed
 {
-  return 0;
+  //shift bits by low int and then get the bits upto the high int
+  if (low < 0 || low > 63 || high < 0 || high > 63)
+  {
+    return 0;
+  }
+  uint64_t highestBits = 0xFFFFFFFFFFFFFFFF;
+  high = high - low;
+  highestBits = highestBits >> (63 - high);
+  source = source >> low;
+  return source & (highestBits);
 }
 
 
@@ -123,9 +146,21 @@ uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high)
  * 2) no loops or conditionals (other than for 1) or switch
  * 3) you can use other functions you have written, for example, getBits
  */
-uint64_t Tools::setBits(uint64_t source, int32_t low, int32_t high)
+uint64_t Tools::setBits(uint64_t source, int32_t low, int32_t high) //come back to
 {
-  return 0;
+  //get the bits to turn to xff, turn them to xff, shift them to the correct position
+  //based on high and low, insert into the source with &
+  if (low < 0 || low > 63 || high < 0 || high > 63)
+  {
+    return 0;
+  }
+  uint8_t bitsToChange = getBits(source, low, high);
+  uint8_t invrBits = ~bitsToChange;
+  bitsToChange = bitsToChange | invrBits;
+  uint64_t bits = bitsToChange;
+  bits = bits << low;
+  source = source | bitsToChange;
+  return source;
 }
 
 /**
@@ -228,7 +263,8 @@ uint64_t Tools::setByte(uint64_t source, int32_t byteNum)
  */
 uint64_t Tools::sign(uint64_t source)
 {
-  return 0;
+  uint64_t signBit = getBits(source, 63, 63);
+  return signBit;
 }
 
 /**
