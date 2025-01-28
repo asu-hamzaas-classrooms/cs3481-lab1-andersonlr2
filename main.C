@@ -332,6 +332,8 @@ int setBitsTests()
    pass &= myAssert(Tools::setBits(0x8000000000000000, 0, 0), 0x8000000000000001);
    pass &= myAssert(Tools::setBits(0x8000000000000001, 0, 0), 0x8000000000000001);
    pass &= myAssert(Tools::setBits(0x8000000000000001, 2, 3), 0x800000000000000d);
+   // added a test
+   pass &= myAssert(Tools::setBits(0x8877665544332211, 60, 63), 0xf877665544332211);
    return pass;
 }
 
@@ -356,6 +358,8 @@ int clearBitsTests()
    pass &= myAssert(Tools::clearBits(0x1122334455667788, 0x30, 0x3f), 0x0000334455667788);
    pass &= myAssert(Tools::clearBits(0x1122334455667788, 0x40, 0x3f), 0x1122334455667788);
    pass &= myAssert(Tools::clearBits(0x1122334455667788, 0x30, 0x40), 0x1122334455667788);
+   //added a test
+   pass &= myAssert(Tools::clearBits(0x8877665544332211, 63, 63), 0x0877665544332211);
    return pass;
 }
 
