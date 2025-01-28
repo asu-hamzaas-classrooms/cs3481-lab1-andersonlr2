@@ -1,6 +1,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <climits>
+#include <unistd.h>
 #include "Tools.h"
 
 /*
@@ -72,9 +76,8 @@ uint64_t Tools::buildLong(uint8_t bytes[LONGSIZE]) //completed
  * 1) you can use an if to handle error checking on input
  * 2) no loops or conditionals (other than for 1) or switch
 */
-uint64_t Tools::getByte(uint64_t source, int32_t byteNum) //completed
+uint64_t Tools::getByte(uint64_t source, int32_t byteNum)
 {
-  //shift bits until the desired numbers are in the lowest order and then return those
   uint64_t lowestBits = 0x00000000000000FF;
   if (byteNum > 7 || byteNum < 0)
   {
@@ -109,10 +112,9 @@ uint64_t Tools::getByte(uint64_t source, int32_t byteNum) //completed
  * 1) you can use an if to handle error checking on input
  * 2) no loops or conditionals (other than for 1) or switch
  */
-uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high) //completed
+uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high)
 {
-  //shift bits by low int and then get the bits upto the high int
-  if (low < 0 || low > 63 || high < 0 || high > 63)
+  if (low > high || low < 0 || low > 63 || high < 0 || high > 63)
   {
     return 0;
   }
@@ -146,20 +148,15 @@ uint64_t Tools::getBits(uint64_t source, int32_t low, int32_t high) //completed
  * 2) no loops or conditionals (other than for 1) or switch
  * 3) you can use other functions you have written, for example, getBits
  */
-uint64_t Tools::setBits(uint64_t source, int32_t low, int32_t high) //incomplete
+uint64_t Tools::setBits(uint64_t source, int32_t low, int32_t high)
 {
-  //get the bits to turn to xff, turn them to xff, shift them to the correct position
-  //based on high and low, insert into the source with &
-  if (low < 0 || low > 63 || high < 0 || high > 63)
+  if (low > high || low < 0 || low > 63 || high < 0 || high > 63)
   {
-    return 0;
+    return source;
   }
-  uint8_t bitsToChange = getBits(source, low, high);
-  bitsToChange = bitsToChange | ~bitsToChange;
-  uint64_t bits = bitsToChange;
-  bits = bits << low;
-  source = source | bitsToChange;
-  return source;
+  
+  uint64_t mask = getBits(~0ul, low, high) << low;
+  return source | mask;
 }
 
 /**
@@ -184,12 +181,12 @@ uint64_t Tools::setBits(uint64_t source, int32_t low, int32_t high) //incomplete
  */
 uint64_t Tools::clearBits(uint64_t source, int32_t low, int32_t high)
 {
-  if (low < 0 || low > 63 || high < 0 || high > 63) 
+  if (low > high || low < 0 || low > 63 || high < 0 || high > 63) 
   {
     return source;
   }
-  
-  return 0;
+  uint64_t mask = getBits(~0ul, low, high) << low;
+  return source & ~mask;
 }
 
 
@@ -220,7 +217,13 @@ uint64_t Tools::clearBits(uint64_t source, int32_t low, int32_t high)
 uint64_t Tools::copyBits(uint64_t source, uint64_t dest, 
                          int32_t srclow, int32_t dstlow, int32_t length)
 {
-   return 0; 
+  if (srclow > 63 || dstlow > 63 || (srclow + length - 1) > 63 || (dstlow + length - 1) > 63 || srclow < 0 || dstlow < 0) 
+  {
+    return dest;
+  }
+  uint64_t bitsToCopy = getBits(source, srclow, (srclow + (length - 1))) << dstlow;
+  dest = clearBits(dest, dstlow, (dstlow + length - 1));
+  return dest | bitsToCopy;
 }
 
 
@@ -243,7 +246,7 @@ uint64_t Tools::copyBits(uint64_t source, uint64_t dest,
  *               code to return source if bytenum is out of range and
  *               the source otherwise.
  */
-uint64_t Tools::setByte(uint64_t source, int32_t byteNum) //not completed
+uint64_t Tools::setByte(uint64_t source, int32_t byteNum)
 {
   uint64_t toSetTo = 0x00000000000000ff;
   toSetTo = toSetTo  << (byteNum*8);
@@ -296,7 +299,7 @@ uint64_t Tools::setByte(uint64_t source, int32_t byteNum) //not completed
  * 1) no loops or conditionals
  * 2) you can use other functions you have written, for example, getBits
  */
-uint64_t Tools::sign(uint64_t source) //completed
+uint64_t Tools::sign(uint64_t source)
 {
   uint64_t signBit = getBits(source, 63, 63);
   return signBit;
@@ -321,7 +324,7 @@ uint64_t Tools::sign(uint64_t source) //completed
  * 2) you can use other functions you have written, for example, sign
  * 3) no more than 10 lines of code
  */
-bool Tools::addOverflow(uint64_t op1, uint64_t op2) //completed
+bool Tools::addOverflow(uint64_t op1, uint64_t op2)
 {
   //Hint: If an overflow occurs then it overflows by just one bit.
   //      In other words, 65 bits would be needed to store the arithmetic 
@@ -359,7 +362,7 @@ bool Tools::addOverflow(uint64_t op1, uint64_t op2) //completed
  * 3) you cannot use addOverflow (it doesn't work in all cases).
  * 4) no more than 10 lines of code
  */
-bool Tools::subOverflow(uint64_t op1, uint64_t op2) //completed
+bool Tools::subOverflow(uint64_t op1, uint64_t op2)
 {
   //See hint for addOverflow
   //Note: you can not simply use addOverflow in this function.  If you negate
